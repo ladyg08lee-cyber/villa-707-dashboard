@@ -543,8 +543,10 @@ async function doSave(){
   }
 }
 
-async function loadFromSheet(){
+async function loadFromSheet(force){
   if(!WEBAPP_URL || WEBAPP_URL==='PASTE_YOUR_WEBAPP_URL_HERE') return false;
+  // Don't overwrite local edits unless forced (e.g. boot or manual sync)
+  if(!force && (saving || pendingSave || Date.now() - lastEditTime < 30000)) return false;
   try{
     const resp = await fetch(WEBAPP_URL+'?t='+Date.now());
     const data = await resp.json();
@@ -573,7 +575,7 @@ async function syncNow(){
   // First push local changes
   await doSave();
   // Then pull latest from sheet
-  const loaded = await loadFromSheet();
+  const loaded = await loadFromSheet(true);
   if(loaded){ render(); setSave('Synced with Google Sheets · '+new Date().toLocaleTimeString(),false); }
 }
 
@@ -622,7 +624,7 @@ function exportCSV(){
   document.body.appendChild(overlay);
 
   // Try loading from Google Sheets
-  const loaded = await loadFromSheet();
+  const loaded = await loadFromSheet(true);
 
   if(!loaded){
     // Fall back to localStorage
@@ -642,12 +644,10 @@ function exportCSV(){
   overlay.classList.add('hide');
   setTimeout(()=>overlay.remove(),400);
 
-  // Auto-refresh from Google Sheets every 30 seconds
+  // Auto-refresh from Google Sheets every 60 seconds
   setInterval(async ()=>{
-    if(saving || pendingSave) return; // Don't pull while pushing
-    if(Date.now() - lastEditTime < 15000) return; // Grace period after editing
-    const loaded = await loadFromSheet();
+    const loaded = await loadFromSheet(false);
     if(loaded) render();
-  }, 30000);
+  }, 60000);
 })();
 </script></body></html>
