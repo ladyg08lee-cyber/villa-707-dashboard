@@ -496,7 +496,7 @@ function setSave(txt,warn){ const d=document.getElementById('savedot'),t=documen
 /* ═══════════════════════════════════════════════════════════
    GOOGLE SHEETS SYNC ENGINE
    ═══════════════════════════════════════════════════════════ */
-let saveTimer=null, saving=false, pendingSave=false;
+let saveTimer=null, saving=false, pendingSave=false, lastEditTime=0;
 
 function persist(){
   // Always save to localStorage as fallback
@@ -506,6 +506,7 @@ function persist(){
   if(dot)dot.classList.add('syncing');
 
   pendingSave=true;
+  lastEditTime=Date.now();
   clearTimeout(saveTimer);
   saveTimer=setTimeout(doSave, 1200);
 }
@@ -644,6 +645,7 @@ function exportCSV(){
   // Auto-refresh from Google Sheets every 30 seconds
   setInterval(async ()=>{
     if(saving || pendingSave) return; // Don't pull while pushing
+    if(Date.now() - lastEditTime < 15000) return; // Grace period after editing
     const loaded = await loadFromSheet();
     if(loaded) render();
   }, 30000);
