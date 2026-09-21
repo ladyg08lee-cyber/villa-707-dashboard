@@ -1,8 +1,8 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Villa 707 Document Tracker</title><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Reddit+Sans:wght@400;500;600;700;800&display=swap"></head><body><div id="root"></div><script id="app-state" type="application/json">[]</script><script id="folder-state" type="application/json">{}</script><script id="meta-state" type="application/json">{"eyebrow":"Handover Documentation","title":"Villa 707 — Document Master List Tracker","subtitle":"Operational handover-document tracker","footer":"Villa 707 Document Master List Tracker · fäm Interior · Client Handover Document Control"}</script><script id="app-script">
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Villa 606 Document Tracker</title><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Reddit+Sans:wght@400;500;600;700;800&display=swap"></head><body><div id="root"></div><script id="app-state" type="application/json">[]</script><script id="folder-state" type="application/json">{}</script><script id="meta-state" type="application/json">{"eyebrow":"Handover Documentation","title":"Villa 606 — Document Master List Tracker","subtitle":"Operational handover-document tracker","footer":"Villa 606 Document Master List Tracker · fäm Interior · Client Handover Document Control"}</script><script id="app-script">
 /* ═══════════════════════════════════════════════════════════
    CONFIGURATION — Paste your Google Apps Script Web App URL
    ═══════════════════════════════════════════════════════════ */
-const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbwMwnYt_tUYYsh2Nj3ZG9nholzSeH6jY3Hj3SsSEhG1csBofIV5-xli5bLZbWQWmKq6/exec';
+const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxgWkOdqvbszvqwAVMoPeBtRa-VDabk6bwEMWPe2rkgj-YOAsWpg6Y_jEYpkQ24rKXw/exec';
 /* ═══════════════════════════════════════════════════════════ */
 
 const CSS = `
@@ -150,13 +150,13 @@ let STATE = [];
 try{ STATE = JSON.parse(document.getElementById('app-state').textContent) || []; }catch(e){ STATE=[]; }
 let EXTRA_GROUPS = {};
 try{const el=document.getElementById('folder-state');if(el)EXTRA_GROUPS=JSON.parse(el.textContent)||{};}catch(e){EXTRA_GROUPS={};}
-let META={eyebrow:'Handover Documentation',title:'Villa 707 — Document Master List Tracker',subtitle:'Operational handover-document tracker',footer:'Villa 707 Document Master List Tracker · fäm Interior · Client Handover Document Control'};
+let META={eyebrow:'Handover Documentation',title:'Villa 606 — Document Master List Tracker',subtitle:'Operational handover-document tracker',footer:'Villa 606 Document Master List Tracker · fäm Interior · Client Handover Document Control'};
 try{const el=document.getElementById('meta-state');if(el)META={...META,...JSON.parse(el.textContent)};}catch(e){}
 let LAST_UNDO=null,undoTimer=null;
 const COLLAPSED=new Set();
 STATE.forEach(r=>{EXTRA_GROUPS[r.main]=EXTRA_GROUPS[r.main]||[];if(r.group&&!EXTRA_GROUPS[r.main].includes(r.group))EXTRA_GROUPS[r.main].push(r.group);});
 
-const LSKEY = 'v707_tracker_live_v6';
+const LSKEY = 'v606_tracker_live_v6';
 let syncOnline = true;
 let lastSyncTime = 0;
 
@@ -387,22 +387,6 @@ function renderRows(){
   tb.querySelectorAll('.del').forEach(b=>b.addEventListener('click',()=>deleteRow(+b.getAttribute('data-del'))));
 }
 
-/* Normalize any date string to yyyy-MM-dd for <input type="date"> */
-function normalizeDate(d){
-  if(!d || d==='') return '';
-  // Already yyyy-MM-dd
-  if(/^\d{4}-\d{2}-\d{2}$/.test(d)) return d;
-  // dd/mm/yyyy or dd-mm-yyyy
-  let m = d.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
-  if(m) return m[3]+'-'+m[2].padStart(2,'0')+'-'+m[1].padStart(2,'0');
-  // Full JS Date string like "Thu Jul 09 2026 04:00:00 GMT+0400..."
-  try{ const dt=new Date(d); if(!isNaN(dt.getTime())){ return dt.toISOString().slice(0,10); } }catch(e){}
-  return '';
-}
-function normalizeRowDates(rows){
-  return rows.map(r=>({...r, date: normalizeDate(r.date)}));
-}
-
 function newId(){ return (STATE.reduce((m,r)=>Math.max(m,r.id||0),0))+1; }
 function addRow(){
   const main = (F.folder!=="All") ? F.folder : (Array.from(new Set(STATE.map(r=>r.main)))[0]||"01 – General");
@@ -419,7 +403,7 @@ function deleteRow(id){
 }
 function backup(){
   const data=JSON.stringify({exportedAt:new Date().toISOString(),documentCount:STATE.length,rows:STATE,groups:EXTRA_GROUPS,meta:META},null,1);
-  try{ const b=new Blob([data],{type:'application/json'}); const u=URL.createObjectURL(b); const a=document.createElement('a'); a.href=u; a.download='Villa707_tracker_data.json'; a.click(); URL.revokeObjectURL(u);}catch(e){ alert('Backup not available.'); }
+  try{ const b=new Blob([data],{type:'application/json'}); const u=URL.createObjectURL(b); const a=document.createElement('a'); a.href=u; a.download='Villa606_tracker_data.json'; a.click(); URL.revokeObjectURL(u);}catch(e){ alert('Backup not available.'); }
 }
 function restore(file){
   const rd=new FileReader();
@@ -496,7 +480,7 @@ function setSave(txt,warn){ const d=document.getElementById('savedot'),t=documen
 /* ═══════════════════════════════════════════════════════════
    GOOGLE SHEETS SYNC ENGINE
    ═══════════════════════════════════════════════════════════ */
-let saveTimer=null, saving=false, pendingSave=false, lastEditTime=0;
+let saveTimer=null, saving=false, pendingSave=false;
 
 function persist(){
   // Always save to localStorage as fallback
@@ -506,7 +490,6 @@ function persist(){
   if(dot)dot.classList.add('syncing');
 
   pendingSave=true;
-  lastEditTime=Date.now();
   clearTimeout(saveTimer);
   saveTimer=setTimeout(doSave, 1200);
 }
@@ -543,16 +526,14 @@ async function doSave(){
   }
 }
 
-async function loadFromSheet(force){
+async function loadFromSheet(){
   if(!WEBAPP_URL || WEBAPP_URL==='PASTE_YOUR_WEBAPP_URL_HERE') return false;
-  // Don't overwrite local edits unless forced (e.g. boot or manual sync)
-  if(!force && (saving || pendingSave || Date.now() - lastEditTime < 30000)) return false;
   try{
     const resp = await fetch(WEBAPP_URL+'?t='+Date.now());
     const data = await resp.json();
     if(data.error) throw new Error(data.error);
     if(data.rows && data.rows.length > 0){
-      STATE = data.rows.map((r,i)=>({id:r.id||i+1,main:r.main||'',group:r.group||'',title:r.title||'',status:r.status||'Not Started',resp:r.resp||'',date:normalizeDate(r.date||''),rem:r.rem||'',link:r.link||''}));
+      STATE = data.rows.map((r,i)=>({id:r.id||i+1,main:r.main||'',group:r.group||'',title:r.title||'',status:r.status||'Not Started',resp:r.resp||'',date:r.date||'',rem:r.rem||'',link:r.link||''}));
       EXTRA_GROUPS = data.groups || {};
       if(data.meta) META = {...META, ...data.meta};
       STATE.forEach(r=>{EXTRA_GROUPS[r.main]=EXTRA_GROUPS[r.main]||[];if(r.group&&!EXTRA_GROUPS[r.main].includes(r.group))EXTRA_GROUPS[r.main].push(r.group);});
@@ -575,7 +556,7 @@ async function syncNow(){
   // First push local changes
   await doSave();
   // Then pull latest from sheet
-  const loaded = await loadFromSheet(true);
+  const loaded = await loadFromSheet();
   if(loaded){ render(); setSave('Synced with Google Sheets · '+new Date().toLocaleTimeString(),false); }
 }
 
@@ -586,7 +567,7 @@ function buildDoc(){
   const app=document.getElementById('app-script').textContent;
   return '<!doctype html><html lang="en"><head><meta charset="utf-8">'
     +'<meta name="viewport" content="width=device-width, initial-scale=1">'
-    +'<title>Villa 707 Document Tracker</title>'
+    +'<title>Villa 606 Document Tracker</title>'
     +'<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Reddit+Sans:wght@400;500;600;700;800&display=swap">'
     +'</head><body>'
     +'<div id="root"></div>'
@@ -600,7 +581,7 @@ function downloadHTML(){
   try{localStorage.setItem(LSKEY,JSON.stringify({t:Date.now(),s:STATE,g:EXTRA_GROUPS,m:META}));}catch(e){}
   const blob=new Blob([buildDoc()],{type:'text/html;charset=utf-8'});
   const url=URL.createObjectURL(blob),a=document.createElement('a');
-  a.href=url;a.download='Villa_707_Interactive_Document_Dashboard.html';a.click();
+  a.href=url;a.download='Villa_606_Interactive_Document_Dashboard.html';a.click();
   setTimeout(()=>URL.revokeObjectURL(url),1200);setSave('Downloaded with latest changes',false);
 }
 
@@ -610,7 +591,7 @@ function exportCSV(){
   const lines=[head.map(q).join(',')];
   STATE.forEach(r=>lines.push([r.id,r.main,r.group,r.title,r.status,r.resp,r.date,r.rem,r.link||""].map(q).join(',')));
   const data=lines.join('\r\n');
-  try{ const b=new Blob([data],{type:'text/csv'}); const u=URL.createObjectURL(b); const a=document.createElement('a'); a.href=u; a.download='Villa707_Document_Tracker.csv'; a.click(); URL.revokeObjectURL(u);}catch(e){ alert('Export not available.'); }
+  try{ const b=new Blob([data],{type:'text/csv'}); const u=URL.createObjectURL(b); const a=document.createElement('a'); a.href=u; a.download='Villa606_Document_Tracker.csv'; a.click(); URL.revokeObjectURL(u);}catch(e){ alert('Export not available.'); }
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -624,14 +605,14 @@ function exportCSV(){
   document.body.appendChild(overlay);
 
   // Try loading from Google Sheets
-  const loaded = await loadFromSheet(true);
+  const loaded = await loadFromSheet();
 
   if(!loaded){
     // Fall back to localStorage
     try{
       const ls=JSON.parse(localStorage.getItem(LSKEY));
       if(ls&&Array.isArray(ls.s)){
-        STATE=ls.s.map((r,i)=>({id:r.id||i+1,main:r.main||'',group:r.group||'',title:r.title||'',status:r.status||'Not Started',resp:r.resp||'',date:normalizeDate(r.date||''),rem:r.rem||'',link:r.link||''}));
+        STATE=ls.s.map((r,i)=>({id:r.id||i+1,main:r.main||'',group:r.group||'',title:r.title||'',status:r.status||'Not Started',resp:r.resp||'',date:r.date||'',rem:r.rem||'',link:r.link||''}));
         EXTRA_GROUPS=ls.g||EXTRA_GROUPS;
         if(ls.m)META={...META,...ls.m};
       }
@@ -644,10 +625,11 @@ function exportCSV(){
   overlay.classList.add('hide');
   setTimeout(()=>overlay.remove(),400);
 
-  // Auto-refresh from Google Sheets every 60 seconds
+  // Auto-refresh from Google Sheets every 30 seconds
   setInterval(async ()=>{
-    const loaded = await loadFromSheet(false);
+    if(saving || pendingSave) return; // Don't pull while pushing
+    const loaded = await loadFromSheet();
     if(loaded) render();
-  }, 60000);
+  }, 30000);
 })();
 </script></body></html>
