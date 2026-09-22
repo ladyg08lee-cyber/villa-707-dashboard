@@ -396,7 +396,7 @@ function normalizeDate(d){
   let m = d.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
   if(m) return m[3]+'-'+m[2].padStart(2,'0')+'-'+m[1].padStart(2,'0');
   // Full JS Date string like "Thu Jul 09 2026 04:00:00 GMT+0400..."
-  try{ const dt=new Date(d); if(!isNaN(dt.getTime())){ return dt.toISOString().slice(0,10); } }catch(e){}
+  try{ const dt=new Date(d); if(!isNaN(dt.getTime())){ const y=dt.getFullYear(),mo=String(dt.getMonth()+1).padStart(2,'0'),dy=String(dt.getDate()).padStart(2,'0'); return y+'-'+mo+'-'+dy; } }catch(e){}
   return '';
 }
 function normalizeRowDates(rows){
